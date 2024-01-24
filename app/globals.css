@@ -24,6 +24,10 @@
     --input: 0 0% 89.8%;
     --ring: 0 72.2% 50.6%;
     --radius: 0.75rem;
+
+    --card-blue: 221 83% 53%;
+    --card-green: 142 76% 36%;
+    --card-yellow: 41 93% 47%;
   }
 
   .dark {
@@ -46,6 +50,10 @@
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
     --ring: 0 72.2% 50.6%;
+
+    --card-blue: 221 83% 53%;
+    --card-green: 142 76% 36%;
+    --card-yellow: 41 93% 47%;
   }
 }
 

@@ -25,25 +25,35 @@ import {
   Plus,
   RotateCcw,
   Settings2,
+  X,
 } from "lucide-react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Input } from "@/components/ui/input";
 
 type Props = {};
 
 interface CarouselItem {
   title: string;
   number: number;
+  color: string;
+  incrementValue: number;
+  decrementValue: number;
 }
 
 const CarouselCards = (props: Props) => {
   const [itemList, setItemList] = useState<CarouselItem[] | []>([
     {
-      title: "Push Ups",
+      title: "Title",
       number: 0,
+      color: "#dc2626",
+      incrementValue: 1,
+      decrementValue: 1,
     },
   ]);
   const [api, setApi] = useState<CarouselApi>();
@@ -62,9 +72,10 @@ const CarouselCards = (props: Props) => {
       setCurrent(api.selectedScrollSnap() + 1);
     });
     api.on("slidesChanged", () => {
-      api.scrollTo(count - 1);
+      api.scrollTo(api.scrollSnapList().length);
+      // api.scrollTo(api.previousScrollSnap());
     });
-  }, [api, count]);
+  }, [api]);
 
   const addItemHandler = () => {
     setItemList([
@@ -72,15 +83,42 @@ const CarouselCards = (props: Props) => {
       {
         title: "Add Title",
         number: 0,
+        color: "#dc2626",
+        incrementValue: 1,
+        decrementValue: 1,
       },
     ]);
     setCount((prev) => prev + 1);
   };
 
+  const removeItemHandler = () => {
+    if (itemList) {
+      setItemList((itemList) =>
+        itemList.filter((_, index) => index !== current - 1)
+      );
+    }
+  };
+
+  const colorHandler = (color: string, index: number) => {
+    let newItemList = [...itemList];
+    let newItem = { ...newItemList[index] };
+    newItem.color = color;
+    newItemList[index] = newItem;
+    setItemList(newItemList);
+  };
+
+  const titleHandler = (title: string, index: number) => {
+    let newItemList = [...itemList];
+    let newItem = { ...newItemList[index] };
+    newItem.title = title;
+    newItemList[index] = newItem;
+    setItemList(newItemList);
+  };
+
   const increaseCounter = (index: number) => {
     let newItemList = [...itemList];
     let newItem = { ...newItemList[index] };
-    newItem.number = newItem.number + 1;
+    newItem.number = newItem.number + newItem.incrementValue;
     newItemList[index] = newItem;
     setItemList(newItemList);
   };
@@ -89,7 +127,7 @@ const CarouselCards = (props: Props) => {
     if (itemList[index].number === 0) return;
     let newItemList = [...itemList];
     let newItem = { ...newItemList[index] };
-    newItem.number = newItem.number - 1;
+    newItem.number = newItem.number - newItem.decrementValue;
     newItemList[index] = newItem;
     setItemList(newItemList);
   };
@@ -112,7 +150,7 @@ const CarouselCards = (props: Props) => {
       className="relative w-full h-full max-w-2xl aspect-square"
     >
       <div className="flex gap-1 py-4 justify-center">
-        {Array.from({ length: count }).map((_, index) => (
+        {Array.from({ length: itemList.length }).map((_, index) => (
           <div
             key={index}
             className={`h-2.5 ${
@@ -129,7 +167,12 @@ const CarouselCards = (props: Props) => {
         {itemList.map((item, index) => (
           <CarouselItem key={index}>
             <div className="p-1">
-              <Card className="relative bg-primary min-w-sm rounded-2xl">
+              <Card
+                className={`"relative min-w-sm rounded-2xl"`}
+                style={{
+                  backgroundColor: item.color,
+                }}
+              >
                 {/* <CardTitle>
                   <div className="p-10 pb-0 flex justify-between items-center group cursor-default">
                     <p className="text-4xl font-bold text-white tracking-tight">
@@ -147,9 +190,15 @@ const CarouselCards = (props: Props) => {
                 <CardContent className="aspect-square flex items-center justify-center overflow-hidden">
                   <div className="h-full flex flex-col items-center justify-between text-white">
                     <div className="p-10 pb-0 flex justify-between items-center group cursor-default">
-                      <p className="text-4xl font-bold text-white tracking-tight">
+                      <div
+                        contentEditable="true"
+                        onChange={(e) =>
+                          titleHandler(e.currentTarget.innerText, index)
+                        }
+                        className="text-4xl font-bold text-white tracking-tight"
+                      >
                         {item.title}
-                      </p>
+                      </div>
                       {/* <Button
                         className="rounded-full hover:bg-transparent hover:text-black group-hover:visible invisible"
                         size={"icon"}
@@ -199,13 +248,76 @@ const CarouselCards = (props: Props) => {
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent side="top" sideOffset={10}>
-                          <div>
-                            <p className="p-1">Color</p>
-                            <div className="p-1 flex items-center space-x-3">
-                              <div className="h-5 w-5 shrink-0 bg-primary ring-2 ring-offset-2 ring-offset-background ring-primary rounded-full"></div>
-                              <div className="h-5 w-5 shrink-0 bg-blue-600 rounded-full hover:ring-2 hover:ring-offset-2 hover:ring-offset-background hover:ring-blue-600"></div>
-                              <div className="h-5 w-5 shrink-0 bg-green-600 rounded-full hover:ring-2 hover:ring-offset-2 hover:ring-offset-background hover:ring-green-600"></div>
-                              <div className="h-5 w-5 shrink-0 bg-yellow-600 rounded-full hover:ring-2 hover:ring-offset-2 hover:ring-offset-background hover:ring-yellow-600"></div>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between space-x-2">
+                              <Label className="p-1">Color</Label>
+                              <RadioGroup
+                                onValueChange={(color) =>
+                                  colorHandler(color, index)
+                                }
+                                value={item.color}
+                              >
+                                <div className="flex items-center space-x-3 px-1">
+                                  <RadioGroupItem
+                                    value="#dc2626"
+                                    id="red"
+                                    className="bg-primary border-none"
+                                  />
+                                  <RadioGroupItem
+                                    value="#2563eb"
+                                    id="blue"
+                                    className="bg-card-blue border-none"
+                                  />
+                                  <RadioGroupItem
+                                    value="#16a34a"
+                                    id="green"
+                                    className="bg-card-green border-none"
+                                  />
+                                  <RadioGroupItem
+                                    value="#eab308"
+                                    id="yellow"
+                                    className="bg-card-yellow border-none"
+                                  />
+                                </div>
+                              </RadioGroup>
+                            </div>
+                            <div className="flex items-center justify-between space-x-3 px-1">
+                              <Label className="whitespace-nowrap">
+                                <b>+</b> Value
+                              </Label>
+                              <Input
+                                type="number"
+                                value={item.incrementValue}
+                                onChange={(e) => {
+                                  let newItemList = [...itemList];
+                                  let newItem = { ...newItemList[index] };
+                                  newItem.incrementValue = Number(
+                                    e.currentTarget.value
+                                  );
+                                  newItemList[index] = newItem;
+                                  setItemList(newItemList);
+                                }}
+                                className="w-20 text-end"
+                              />
+                            </div>
+                            <div className="flex items-center justify-between space-x-3 px-1">
+                              <Label className="whitespace-nowrap">
+                                <b>-</b> Value
+                              </Label>
+                              <Input
+                                type="number"
+                                value={item.decrementValue}
+                                onChange={(e) => {
+                                  let newItemList = [...itemList];
+                                  let newItem = { ...newItemList[index] };
+                                  newItem.decrementValue = Number(
+                                    e.currentTarget.value
+                                  );
+                                  newItemList[index] = newItem;
+                                  setItemList(newItemList);
+                                }}
+                                className="w-20 text-end"
+                              />
                             </div>
                           </div>
                         </PopoverContent>
@@ -222,16 +334,27 @@ const CarouselCards = (props: Props) => {
         className="pt-4 flex justify-center
       "
       >
-        <Button
-          variant={"secondary"}
-          onClick={() => {
-            addItemHandler();
-            api.scrollNext();
-          }}
-          className="absolute bottom-10 h-12 w-12 rounded-full"
-        >
-          <CopyPlus />
-        </Button>
+        <div className="absolute bottom-10 flex space-x-4">
+          <Button
+            variant={"destructive"}
+            disabled={count === 1}
+            onClick={() => {
+              removeItemHandler();
+            }}
+            className="h-12 w-12 rounded-full"
+          >
+            <X />
+          </Button>
+          <Button
+            variant={"outline"}
+            onClick={() => {
+              addItemHandler();
+            }}
+            className="h-12 w-12 rounded-full"
+          >
+            <CopyPlus />
+          </Button>
+        </div>
       </div>
 
       {/* {itemList.length !== 0 && <CarouselPrevious />}
